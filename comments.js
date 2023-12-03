@@ -1,27 +1,41 @@
 // create web server
-// run the server: node comment.js
-// load http://localhost:3000 in a browser to see it in action
+const express = require('express');
+const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
-
-app.use(bodyParser.urlencoded({ extended: false }));
-
-app.get('/', function(req, res) {
-  res.send(`
-    <form method="POST">
-      <input name="comment">
-      <button>Submit</button>
-    </form>
-  `);
+// GET /comments
+router.get('/', (req, res, next) => {
+  // get comments from comments.json
+  const commentsPath = path.join(__dirname, '../data/comments.json');
+  fs.readFile(commentsPath, 'utf8', (err, data) => {
+    if (err) throw err;
+    const comments = JSON.parse(data);
+    // render comments
+    res.render('comments', { comments });
+  });
 });
 
-app.post('/', function(req, res) {
-  res.send('Thanks for your comment!');
-  console.log(req.body);
+// POST /comments
+router.post('/', (req, res, next) => {
+  // get comments from comments.json
+  const commentsPath = path.join(__dirname, '../data/comments.json');
+  fs.readFile(commentsPath, 'utf8', (err, data) => {
+    if (err) throw err;
+    const comments = JSON.parse(data);
+    // add new comment
+    comments.unshift({
+      name: req.body.name,
+      comment: req.body.comment,
+      date: new Date(),
+    });
+    // write comments to comments.json
+    fs.writeFile(commentsPath, JSON.stringify(comments), (err) => {
+      if (err) throw err;
+      // redirect to /comments
+      res.redirect('/comments');
+    });
+  });
 });
 
-app.listen(3000, function() {
-  console.log('App started on port 3000');
-});
+module.exports = router;
